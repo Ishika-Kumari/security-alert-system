@@ -3,520 +3,374 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Security Alert System</title>
+  <title>CloudWatch Alarms — AWS Console</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ── AWS DECOY ── */
+    body{font-family:"Amazon Ember","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;background:#fdf3f3;color:#16191f;min-height:100vh}
+    .aws-util-bar{background:#b0000a;color:#fff;font-size:11px;padding:3px 16px;display:flex;justify-content:flex-end;gap:16px}
+    .aws-util-bar a{color:#ffd;text-decoration:none}
+    .aws-nav{background:#c0001a;display:flex;align-items:center;padding:0 16px;height:48px;gap:20px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+    .aws-logo{display:flex;align-items:center;gap:6px;color:#fff;font-size:18px;font-weight:700;letter-spacing:-.5px;text-decoration:none}
+    .aws-nav-links{display:flex;gap:4px}
+    .aws-nav-links a{color:#ffd0d0;font-size:13px;padding:4px 10px;border-radius:3px;text-decoration:none;transition:background .15s}
+    .aws-nav-links a:hover{background:rgba(255,255,255,.15);color:#fff}
+    .aws-nav-right{margin-left:auto;display:flex;align-items:center;gap:14px;color:#ffd0d0;font-size:13px}
+    .region-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:3px;padding:2px 8px;color:#fff;font-size:12px}
+    .breadcrumb{background:#fce8e8;border-bottom:1px solid #f5c6c6;padding:8px 24px;font-size:12px;color:#b0001a;display:flex;gap:6px;align-items:center}
+    .breadcrumb a{color:#c0001a;text-decoration:none}
+    .aws-layout{display:flex;min-height:calc(100vh - 96px)}
+    .aws-sidebar{width:220px;flex-shrink:0;background:#fff0f0;border-right:1px solid #f5c0c0;padding:12px 0}
+    .sidebar-section{padding:6px 16px 2px;font-size:11px;font-weight:700;text-transform:uppercase;color:#b0001a;letter-spacing:.6px}
+    .sidebar-link{display:block;padding:6px 16px 6px 24px;color:#16191f;text-decoration:none;font-size:13px;transition:background .1s}
+    .sidebar-link:hover{background:#fde0e0}
+    .sidebar-link.active{background:#fce0e0;border-left:3px solid #c0001a;padding-left:21px;color:#c0001a;font-weight:600}
+    .aws-main{flex:1;padding:20px 24px;overflow-x:auto}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+    .page-title{font-size:22px;font-weight:700;color:#c0001a;display:flex;align-items:center;gap:10px}
+    .alarm-count-badge{background:#c0001a;color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;animation:pulse-badge 1s infinite}
+    @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.6}}
+    .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:6px 14px;font-size:13px;border-radius:3px;border:none;cursor:pointer;font-family:inherit;transition:filter .15s}
+    .btn:hover{filter:brightness(.9)}
+    .btn-danger{background:#c0001a;color:#fff}
+    .btn-outline{background:#fff;color:#c0001a;border:1px solid #c0001a}
+    .btn-ghost{background:#fff;color:#545b64;border:1px solid #aab7b8}
+    .critical-banner{background:#c0001a;color:#fff;border-radius:4px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;animation:flash-banner 2s infinite;font-size:13px;font-weight:600}
+    @keyframes flash-banner{0%,100%{background:#c0001a}50%{background:#8b0000}}
+    .critical-banner .icon{font-size:18px;flex-shrink:0}
+    .filter-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+    .filter-bar input{padding:6px 10px;border:1px solid #f5a0a0;border-radius:3px;font-size:13px;background:#fff8f8;color:#16191f;min-width:220px}
+    .filter-chip{padding:4px 10px;border-radius:12px;font-size:12px;border:1px solid;cursor:pointer}
+    .chip-red{background:#fde0e0;color:#c0001a;border-color:#f5a0a0}
+    .chip-active{background:#c0001a;color:#fff;border-color:#c0001a}
+    .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+    .summary-card{background:#fff;border:1px solid #f5c0c0;border-radius:4px;padding:14px 16px;text-align:center}
+    .summary-card .num{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
+    .summary-card .label{font-size:12px;color:#545b64}
+    .card-alarm .num{color:#c0001a}
+    .card-ok .num{color:#1d7102}
+    .card-insuf .num{color:#d45500}
+    .card-total .num{color:#16191f}
+    .alarm-table{width:100%;border-collapse:collapse;font-size:13px}
+    .alarm-table thead tr{background:#fce8e8;border-bottom:2px solid #f5a0a0}
+    .alarm-table th{padding:10px 12px;text-align:left;font-weight:600;color:#b0001a;white-space:nowrap}
+    .alarm-table tbody tr{border-bottom:1px solid #fde0e0;transition:background .1s}
+    .alarm-table tbody tr:hover{background:#fff5f5}
+    .alarm-table td{padding:10px 12px;vertical-align:middle}
+    .state-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+    .state-alarm{background:#fde0e0;color:#c0001a;border:1px solid #f5a0a0;animation:pulse-badge 1.2s infinite}
+    .state-ok{background:#e0fde0;color:#1d7102;border:1px solid #a0f0a0}
+    .state-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+    .alarm-name-link{color:#c0001a;text-decoration:none;font-weight:500}
+    .alarm-name-link:hover{text-decoration:underline}
+    .metric-cell{color:#545b64;font-size:12px}
+    .threshold-cell{font-weight:600;color:#8b0000}
+    .spark{display:inline-block;width:80px;height:28px;vertical-align:middle}
 
-    :root {
-      --green: #00ff41;
-      --red: #ff2200;
-      --yellow: #ffe600;
-      --bg: #0a0a0a;
-      --panel: #111;
-      --border: #333;
-    }
-
-    body {
-      background: var(--bg);
-      font-family: 'Share Tech Mono', monospace;
-      color: var(--green);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* Scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.15) 2px,
-        rgba(0,0,0,0.15) 4px
-      );
-      pointer-events: none;
-      z-index: 9999;
-    }
-
-    .decoy {
-      text-align: center;
-      padding: 2rem;
-      opacity: 1;
-      transition: opacity 0.3s;
-    }
-
-    .decoy h1 {
-      font-family: 'VT323', monospace;
-      font-size: clamp(2rem, 8vw, 4rem);
-      color: var(--green);
-      text-shadow: 0 0 10px var(--green);
-      margin-bottom: 1rem;
-    }
-
-    .decoy p {
-      color: #555;
-      font-size: 0.85rem;
-    }
-
-    /* ── OVERLAY ── */
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      animation: fadeIn 0.2s ease;
-    }
-
-    #overlay.visible { display: flex; }
-
-    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-
-    /* ── ALERT BOX ── */
-    .alert-box {
-      background: var(--panel);
-      border: 2px solid var(--red);
-      border-radius: 4px;
-      width: 100%;
-      max-width: 520px;
-      box-shadow:
-        0 0 0 1px #ff220044,
-        0 0 30px #ff220055,
-        0 0 60px #ff220022;
-      animation: shake 0.4s ease 0.1s both;
-      overflow: hidden;
-    }
-
-    @keyframes shake {
-      0%,100% { transform: translateX(0) }
-      20%      { transform: translateX(-8px) }
-      40%      { transform: translateX(8px) }
-      60%      { transform: translateX(-6px) }
-      80%      { transform: translateX(4px) }
-    }
-
-    /* title bar */
-    .title-bar {
-      background: var(--red);
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      user-select: none;
-    }
-
-    .title-bar span {
-      font-family: 'VT323', monospace;
-      font-size: 1.1rem;
-      color: #fff;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .win-btns { display: flex; gap: 6px; }
-
-    .win-btn {
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      font-size: 0;
-    }
-    .win-btn.close  { background: #ff5f57; }
-    .win-btn.min    { background: #febc2e; }
-    .win-btn.max    { background: #28c840; }
-
-    /* body */
-    .alert-body {
-      padding: 1.25rem 1.25rem 1rem;
-    }
-
-    /* GIF row */
-    .gif-row {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-
-    .gif-frame {
-      border: 2px solid var(--red);
-      border-radius: 3px;
-      overflow: hidden;
-      box-shadow: 0 0 20px #ff220066;
-      max-width: 260px;
-      width: 100%;
-    }
-
-    .gif-frame img {
-      width: 100%;
-      display: block;
-      image-rendering: pixelated;
-    }
-
-    /* status bar */
-    .status-bar {
-      background: #0d0d0d;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 0.5rem 0.75rem;
-      margin-bottom: 1rem;
-      font-size: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--red);
-      animation: blink 0.8s infinite;
-      flex-shrink: 0;
-    }
-    @keyframes blink { 50% { opacity: 0 } }
-
-    .scan-text {
-      color: var(--red);
-      font-size: 0.72rem;
-      overflow: hidden;
-      white-space: nowrap;
-      border-right: 2px solid var(--red);
-      width: 0;
-      animation: type 2.5s steps(40) 0.6s forwards;
-    }
-    @keyframes type { to { width: 100% } }
-
-    /* threat list */
-    .threat-list {
-      list-style: none;
-      margin-bottom: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .threat-list li {
-      font-size: 0.72rem;
-      color: #aaa;
-      padding: 0.3rem 0.5rem;
-      background: #0d0d0d;
-      border-left: 3px solid var(--red);
-      border-radius: 0 3px 3px 0;
-      animation: slideIn 0.3s ease both;
-    }
-
-    .threat-list li:nth-child(1) { animation-delay: 1s }
-    .threat-list li:nth-child(2) { animation-delay: 1.3s }
-    .threat-list li:nth-child(3) { animation-delay: 1.6s }
-
-    @keyframes slideIn {
-      from { opacity:0; transform: translateX(-10px) }
-      to   { opacity:1; transform: translateX(0) }
-    }
-
-    .threat-list li .label {
-      color: var(--yellow);
-      font-size: 0.7rem;
-    }
-
-    /* progress */
-    .progress-wrap {
-      margin-bottom: 1rem;
-    }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.68rem;
-      color: #666;
-      margin-bottom: 0.25rem;
-    }
-
-    .progress-label .pct {
-      color: var(--red);
-      font-family: 'VT323', monospace;
-      font-size: 0.9rem;
-    }
-
-    .bar-track {
-      height: 6px;
-      background: #1a1a1a;
-      border-radius: 3px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--red), var(--yellow));
-      width: 0%;
-      border-radius: 3px;
-      animation: fill 3s ease 0.5s forwards;
-      box-shadow: 0 0 8px var(--red);
-    }
-
-    @keyframes fill { to { width: 100% } }
-
-    /* buttons */
-    .btn-row {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      flex: 1;
-      min-width: 120px;
-      padding: 0.6rem 0.75rem;
-      font-family: 'VT323', monospace;
-      font-size: 1rem;
-      letter-spacing: 1px;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: filter 0.15s, transform 0.1s;
-      text-transform: uppercase;
-    }
-    .btn:active { transform: scale(0.97); }
-
-    .btn-primary {
-      background: var(--red);
-      color: #fff;
-      box-shadow: 0 0 12px #ff220077;
-    }
-    .btn-primary:hover { filter: brightness(1.2); }
-
-    .btn-ghost {
-      background: transparent;
-      color: #555;
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { color: #888; border-color: #555; }
-
-    /* reveal message */
-    #reveal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1rem;
-      text-align: center;
-      padding: 2rem;
-      animation: fadeIn 0.4s ease;
-    }
-    #reveal.visible { display: flex; }
-
-    #reveal .big {
-      font-family: 'VT323', monospace;
-      font-size: clamp(3rem, 15vw, 7rem);
-      color: var(--green);
-      text-shadow: 0 0 30px var(--green);
-      line-height: 1;
-    }
-
-    #reveal .sub {
-      font-size: 0.85rem;
-      color: #555;
-      max-width: 320px;
-    }
-
-    #reveal .restart {
-      margin-top: 1rem;
-      padding: 0.6rem 1.5rem;
-      font-family: 'VT323', monospace;
-      font-size: 1.1rem;
-      background: transparent;
-      color: var(--green);
-      border: 1px solid var(--green);
-      border-radius: 3px;
-      cursor: pointer;
-      letter-spacing: 2px;
-      transition: background 0.2s, color 0.2s;
-    }
-    #reveal .restart:hover {
-      background: var(--green);
-      color: #000;
-    }
-
-    /* glitch on red text */
-    .glitch {
-      position: relative;
-      color: var(--red);
-    }
-    .glitch::before, .glitch::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-    }
-    .glitch::before {
-      color: #ff0;
-      clip-path: polygon(0 33%,100% 33%,100% 66%,0 66%);
-      transform: translateX(-2px);
-      animation: g1 3s infinite;
-    }
-    .glitch::after {
-      color: #0ff;
-      clip-path: polygon(0 10%,100% 10%,100% 30%,0 30%);
-      transform: translateX(2px);
-      animation: g2 3s infinite;
-    }
-    @keyframes g1 { 0%,90%,100%{opacity:0} 92%{opacity:1} }
-    @keyframes g2 { 0%,93%,100%{opacity:0} 95%{opacity:1} }
+    /* ── VIRUS OVERLAY ── */
+    :root{--vred:#ff2200;--vyellow:#ffe600;--vgreen:#00ff41;--vpanel:#111}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:9998}
+    #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .25s ease}
+    #overlay.visible{display:flex}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .alert-box{background:var(--vpanel);border:2px solid var(--vred);border-radius:4px;width:100%;max-width:520px;box-shadow:0 0 0 1px #ff220033,0 0 40px #ff220066,0 0 80px #ff220022;animation:shake .45s ease .1s both;overflow:hidden;font-family:'Share Tech Mono',monospace}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+    .title-bar{background:var(--vred);padding:.5rem .75rem;display:flex;align-items:center;justify-content:space-between}
+    .title-bar span{font-family:'VT323',monospace;font-size:1.1rem;color:#fff;letter-spacing:1px;text-transform:uppercase}
+    .win-btns{display:flex;gap:6px}
+    .win-btn{width:14px;height:14px;border-radius:50%;border:none;cursor:pointer}
+    .win-btn.close{background:#ff5f57}
+    .win-btn.min{background:#febc2e}
+    .win-btn.max{background:#28c840}
+    .alert-body{padding:1.25rem 1.25rem 1rem;color:#ccc}
+    .gif-row{display:flex;justify-content:center;margin-bottom:1rem}
+    .gif-frame{border:2px solid var(--vred);border-radius:3px;overflow:hidden;box-shadow:0 0 20px #ff220066;max-width:260px;width:100%}
+    .gif-frame img{width:100%;display:block}
+    .status-bar{background:#0d0d0d;border:1px solid #333;border-radius:3px;padding:.5rem .75rem;margin-bottom:1rem;font-size:.75rem;display:flex;align-items:center;gap:.5rem}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--vred);animation:blink .8s infinite;flex-shrink:0}
+    @keyframes blink{50%{opacity:0}}
+    .scan-text{color:var(--vred);font-size:.72rem;overflow:hidden;white-space:nowrap;border-right:2px solid var(--vred);width:0;animation:type 2.5s steps(42) .6s forwards}
+    @keyframes type{to{width:100%}}
+    .threat-list{list-style:none;margin-bottom:1rem;display:flex;flex-direction:column;gap:.35rem}
+    .threat-list li{font-size:.72rem;color:#aaa;padding:.3rem .5rem;background:#0d0d0d;border-left:3px solid var(--vred);border-radius:0 3px 3px 0;animation:slideIn .3s ease both}
+    .threat-list li:nth-child(1){animation-delay:1s}
+    .threat-list li:nth-child(2){animation-delay:1.3s}
+    .threat-list li:nth-child(3){animation-delay:1.6s}
+    @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+    .threat-list li .label{color:var(--vyellow);font-size:.7rem}
+    .progress-wrap{margin-bottom:1rem}
+    .progress-label{display:flex;justify-content:space-between;font-size:.68rem;color:#666;margin-bottom:.25rem}
+    .progress-label .pct{color:var(--vred);font-family:'VT323',monospace;font-size:.9rem}
+    .bar-track{height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden;border:1px solid #333}
+    .bar-fill{height:100%;background:linear-gradient(90deg,var(--vred),var(--vyellow));width:0%;border-radius:3px;animation:fill 3s ease .5s forwards;box-shadow:0 0 8px var(--vred)}
+    @keyframes fill{to{width:100%}}
+    .vbtn-row{display:flex;gap:.6rem;flex-wrap:wrap}
+    .vbtn{flex:1;min-width:120px;padding:.6rem .75rem;font-family:'VT323',monospace;font-size:1rem;letter-spacing:1px;border:none;border-radius:3px;cursor:pointer;transition:filter .15s,transform .1s;text-transform:uppercase}
+    .vbtn:active{transform:scale(.97)}
+    .vbtn-primary{background:var(--vred);color:#fff;box-shadow:0 0 12px #ff220077}
+    .vbtn-primary:hover{filter:brightness(1.2)}
+    .vbtn-ghost{background:transparent;color:#555;border:1px solid #333}
+    .vbtn-ghost:hover{color:#888;border-color:#555}
+    #reveal{display:none;position:fixed;inset:0;background:#0a0a0a;z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;text-align:center;padding:2rem;animation:fadeIn .4s ease;font-family:'Share Tech Mono',monospace}
+    #reveal.visible{display:flex}
+    #reveal .big{font-family:'VT323',monospace;font-size:clamp(3rem,15vw,7rem);color:var(--vgreen);text-shadow:0 0 30px var(--vgreen);line-height:1}
+    #reveal .sub{font-size:.85rem;color:#555;max-width:320px;margin-top:.5rem}
+    #reveal .restart{margin-top:1rem;padding:.6rem 1.5rem;font-family:'VT323',monospace;font-size:1.1rem;background:transparent;color:var(--vgreen);border:1px solid var(--vgreen);border-radius:3px;cursor:pointer;letter-spacing:2px;transition:background .2s,color .2s}
+    #reveal .restart:hover{background:var(--vgreen);color:#000}
   </style>
 </head>
 <body>
 
-  <!-- Innocent-looking decoy page -->
-  <div class="decoy" id="decoy">
-    <h1>&gt; hello world_</h1>
-    <p>Just a totally normal webpage. Nothing suspicious here.</p>
+<!-- ═══ FAKE AWS PAGE ═══ -->
+<div id="aws-page">
+  <div class="aws-util-bar">
+    <a href="#">AWS Management Console</a>
+    <a href="#">Support ▼</a>
+    <a href="#">ishika-kumari @ 123456789012 ▼</a>
   </div>
 
-  <!-- FAKE VIRUS ALERT OVERLAY -->
-  <div id="overlay">
-    <div class="alert-box">
+  <nav class="aws-nav">
+    <a class="aws-logo" href="#">
+      <svg viewBox="0 0 50 30" width="50" height="30" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="22" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="#FF9900">aws</text>
+        <path d="M38 18 Q44 22 50 18 Q44 26 38 18Z" fill="#FF9900"/>
+      </svg>
+    </a>
+    <div class="aws-nav-links">
+      <a href="#">Services ▼</a>
+      <a href="#">CloudWatch</a>
+      <a href="#">Alarms</a>
+    </div>
+    <div class="aws-nav-right">
+      <span class="region-badge">🔴 ap-south-1 (Mumbai)</span>
+      <span>ishika-kumari ▼</span>
+    </div>
+  </nav>
 
-      <div class="title-bar">
-        <span>⚠ SYSTEM SECURITY ALERT</span>
-        <div class="win-btns">
-          <button class="win-btn min" title="minimize"></button>
-          <button class="win-btn max" title="maximize"></button>
-          <button class="win-btn close" onclick="dismissAlert()" title="close"></button>
+  <div class="breadcrumb">
+    <a href="#">CloudWatch</a> <span>›</span>
+    <a href="#">Alarms</a> <span>›</span>
+    <strong style="color:#c0001a">All alarms — 7 IN ALARM</strong>
+  </div>
+
+  <div class="aws-layout">
+    <aside class="aws-sidebar">
+      <div class="sidebar-section">CloudWatch</div>
+      <a href="#" class="sidebar-link">Overview</a>
+      <a href="#" class="sidebar-link">Dashboards</a>
+      <div class="sidebar-section" style="margin-top:8px">Alarms</div>
+      <a href="#" class="sidebar-link active">All alarms</a>
+      <a href="#" class="sidebar-link">In alarm</a>
+      <a href="#" class="sidebar-link">Composite alarms</a>
+      <div class="sidebar-section" style="margin-top:8px">Metrics</div>
+      <a href="#" class="sidebar-link">All metrics</a>
+      <a href="#" class="sidebar-link">Explorer</a>
+      <div class="sidebar-section" style="margin-top:8px">Logs</div>
+      <a href="#" class="sidebar-link">Log groups</a>
+      <a href="#" class="sidebar-link">Insights</a>
+      <div class="sidebar-section" style="margin-top:8px">Events</div>
+      <a href="#" class="sidebar-link">Rules</a>
+      <a href="#" class="sidebar-link">Event buses</a>
+    </aside>
+
+    <main class="aws-main">
+      <div class="page-header">
+        <div class="page-title">
+          🚨 CloudWatch Alarms
+          <span class="alarm-count-badge">7 IN ALARM</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-danger">Create alarm</button>
+          <button class="btn btn-outline">Actions ▼</button>
+          <button class="btn btn-ghost">🔄 Refresh</button>
         </div>
       </div>
 
-      <div class="alert-body">
+      <div class="critical-banner">
+        <span class="icon">⛔</span>
+        CRITICAL: 7 alarms are in ALARM state — immediate action required. Production workloads may be affected.
+      </div>
 
-        <!-- GIF — using a free looping pixel-art hacker GIF via giphy cdnb -->
-        <div class="gif-row">
-          <div class="gif-frame">
-            <!--
-              Swap src for any GIF under 100KB for fastest load.
-              This one is a classic "hackerman" pixel art (~60KB) via Giphy.
-            -->
-            <img
-              src="https://media.giphy.com/media/YQitE4YNQNahy/giphy.gif"
-              alt="Hacker animation"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
+      <div class="summary-cards">
+        <div class="summary-card card-alarm"><div class="num">7</div><div class="label">In alarm</div></div>
+        <div class="summary-card card-insuf"><div class="num">2</div><div class="label">Insufficient data</div></div>
+        <div class="summary-card card-ok"><div class="num">14</div><div class="label">OK</div></div>
+        <div class="summary-card card-total"><div class="num">23</div><div class="label">Total alarms</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" value="state:ALARM" />
+        <span class="filter-chip chip-active">IN ALARM (7)</span>
+        <span class="filter-chip chip-red">Critical</span>
+        <span class="filter-chip chip-red">Production</span>
+      </div>
+
+      <table class="alarm-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" /></th>
+            <th>Alarm name</th>
+            <th>State</th>
+            <th>Metric</th>
+            <th>Threshold</th>
+            <th>Last updated</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-rds-CPUUtilization-high</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/RDS · CPUUtilization</td>
+            <td class="threshold-cell">96.4% &gt; 80%</td>
+            <td>2 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,24 10,22 20,18 30,16 40,20 50,10 60,5 70,3 80,2" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-ec2-DiskReadOps-critical</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/EC2 · DiskReadOps</td>
+            <td class="threshold-cell">12,450 &gt; 5,000</td>
+            <td>5 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,20 10,18 20,22 30,12 40,8 50,14 60,4 70,2 80,1" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-lambda-Errors-burst</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/Lambda · Errors</td>
+            <td class="threshold-cell">847 &gt; 100</td>
+            <td>7 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,26 15,24 25,20 35,22 45,15 55,8 65,4 75,2 80,1" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-alb-5xxErrors-high</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/ApplicationELB · HTTPCode_ELB_5XX</td>
+            <td class="threshold-cell">3,210 &gt; 500</td>
+            <td>9 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,22 20,20 30,16 40,18 50,8 60,5 70,3 80,1" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-s3-4xxErrors-alert</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/S3 · 4xxErrors</td>
+            <td class="threshold-cell">5,899 &gt; 1,000</td>
+            <td>11 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,25 10,20 25,18 35,12 50,6 60,4 70,3 80,1" fill="none" stroke="#ff6600" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-rds-FreeStorageSpace-low</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/RDS · FreeStorageSpace</td>
+            <td class="threshold-cell">0.8 GB &lt; 5 GB</td>
+            <td>14 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,4 15,6 30,10 45,14 60,20 70,24 80,27" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-ec2-NetworkOut-throttle</a></td>
+            <td><span class="state-badge state-alarm"><span class="state-dot"></span>ALARM</span></td>
+            <td class="metric-cell">AWS/EC2 · NetworkOut</td>
+            <td class="threshold-cell">982 MB &gt; 200 MB</td>
+            <td>18 min ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,24 10,20 22,16 35,10 48,6 60,4 72,3 80,2" fill="none" stroke="#c0001a" stroke-width="2"/></svg></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td><a class="alarm-name-link" href="#">prod-cloudfront-CacheHitRate-ok</a></td>
+            <td><span class="state-badge state-ok"><span class="state-dot"></span>OK</span></td>
+            <td class="metric-cell">AWS/CloudFront · CacheHitRate</td>
+            <td class="threshold-cell">92% ≥ 80% ✓</td>
+            <td>1 hr ago</td>
+            <td><svg class="spark" viewBox="0 0 80 28"><polyline points="0,14 20,12 40,10 60,11 80,10" fill="none" stroke="#1d7102" stroke-width="2"/></svg></td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+</div>
+
+<!-- ═══ VIRUS OVERLAY ═══ -->
+<div id="overlay">
+  <div class="alert-box">
+    <div class="title-bar">
+      <span>⚠ SYSTEM SECURITY ALERT</span>
+      <div class="win-btns">
+        <button class="win-btn min"></button>
+        <button class="win-btn max"></button>
+        <button class="win-btn close" onclick="dismissAlert()"></button>
+      </div>
+    </div>
+    <div class="alert-body">
+      <div class="status-bar">
+        <div class="dot"></div>
+        <div class="scan-text">SCANNING SYSTEM... 3 THREATS DETECTED</div>
+      </div>
+      <ul class="threat-list">
+        <li><span class="label">TROJAN.WIN32.AWSCREDS.STEALER</span><br>Exfiltrating: ~/.aws/credentials → remote:185.220.101.x</li>
+        <li><span class="label">RANSOMWARE.S3.BUCKET.ENCRYPT</span><br>Encrypting: s3://prod-data-bucket (47 objects queued)</li>
+        <li><span class="label">KEYLOGGER.CONSOLE.SESSION</span><br>Capturing: AWS Console session tokens + MFA codes</li>
+      </ul>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Encrypting your AWS environment...</span>
+          <span class="pct" id="pct">0%</span>
         </div>
-
-        <!-- Animated scan text -->
-        <div class="status-bar">
-          <div class="dot"></div>
-          <div class="scan-text">SCANNING SYSTEM... 3 THREATS DETECTED</div>
-        </div>
-
-        <!-- Fake threat list -->
-        <ul class="threat-list">
-          <li>
-            <span class="label">TROJAN.WIN32.GENERIC</span><br>
-            Found in: C:\Users\You\Downloads\totally_safe.exe
-          </li>
-          <li>
-            <span class="label">SPYWARE.KEYLOGGER.X</span><br>
-            Accessing: keyboard input buffer
-          </li>
-          <li>
-            <span class="label">ADWARE.POPUP.TSUNAMI</span><br>
-            Registry entries: 47 infected keys
-          </li>
-        </ul>
-
-        <!-- Progress bar -->
-        <div class="progress-wrap">
-          <div class="progress-label">
-            <span>Encrypting your files...</span>
-            <span class="pct" id="pct">0%</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill" id="bar"></div>
-          </div>
-        </div>
-
-        <!-- Buttons -->
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="dismissAlert()">
-            🛡 FIX NOW — $9.99
-          </button>
-          <button class="btn btn-ghost" onclick="dismissAlert()">
-            Ignore (not recommended)
-          </button>
-        </div>
-
+        <div class="bar-track"><div class="bar-fill" id="bar"></div></div>
+      </div>
+      <div class="vbtn-row">
+        <button class="vbtn vbtn-primary" onclick="dismissAlert()">🛡 FIX NOW — $9.99</button>
+        <button class="vbtn vbtn-ghost" onclick="dismissAlert()">Ignore (not recommended)</button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- REVEAL after dismissal -->
-  <div id="reveal">
-    <div class="big">😂</div>
-    <div class="big" style="font-size: clamp(2rem,8vw,3.5rem); color: var(--green);">
-      GOT&nbsp;YOU
-    </div>
-    <p class="sub">
-      April Fools! Your computer is totally fine. 
-      This was just a harmless prank page. 
-      Share with friends 👀
-    </p>
-    <button class="restart" onclick="restart()">↩ RUN AGAIN</button>
+<!-- ═══ REVEAL ═══ -->
+<div id="reveal">
+  <div class="big">😂</div>
+  <div class="big" style="font-size:clamp(2rem,8vw,3.5rem);color:#00ff41">GOT&nbsp;YOU</div>
+  <div style="border:3px solid #00ff41;border-radius:6px;overflow:hidden;max-width:280px;width:100%;box-shadow:0 0 30px #00ff4166;margin:0.5rem 0">
+    <img src="https://media.giphy.com/media/YQitE4YNQNahy/giphy.gif" alt="Hacker" style="width:100%;display:block" loading="eager" decoding="async"/>
   </div>
+  <p class="sub">April Fools! Your AWS account is completely fine. This was just a harmless prank. Share the link 👀</p>
+  <button class="restart" onclick="restart()">↩ RUN AGAIN</button>
+</div>
 
-  <script>
-    // Trigger after short delay to let page paint first (good for mobile)
-    window.addEventListener('load', () => {
-      setTimeout(showAlert, 800);
-    });
+<script>
+  window.addEventListener('load', () => setTimeout(showAlert, 900));
 
-    function showAlert() {
-      const overlay = document.getElementById('overlay');
-      overlay.classList.add('visible');
-      animatePct();
-    }
+  function showAlert() {
+    document.getElementById('overlay').classList.add('visible');
+    let v = 0;
+    const iv = setInterval(() => {
+      v = Math.min(v + 2, 100);
+      document.getElementById('pct').textContent = v + '%';
+      if (v >= 100) clearInterval(iv);
+    }, 60);
+  }
 
-    // Animate the % counter in sync with CSS bar animation
-    function animatePct() {
-      const pct = document.getElementById('pct');
-      let val = 0;
-      // 3000ms total, step every ~60ms ≈ 50 steps
-      const interval = setInterval(() => {
-        val = Math.min(val + 2, 100);
-        pct.textContent = val + '%';
-        if (val >= 100) clearInterval(interval);
-      }, 60);
-    }
+  function dismissAlert() {
+    document.getElementById('overlay').classList.remove('visible');
+    document.getElementById('reveal').classList.add('visible');
+  }
 
-    function dismissAlert() {
-      document.getElementById('overlay').classList.remove('visible');
-      document.getElementById('reveal').classList.add('visible');
-    }
-
-    function restart() {
-      document.getElementById('reveal').classList.remove('visible');
-      // Reset progress text
-      document.getElementById('pct').textContent = '0%';
-      // Re-trigger bar animation by cloning element
-      const bar = document.getElementById('bar');
-      const clone = bar.cloneNode(true);
-      bar.parentNode.replaceChild(clone, clone); // trigger reflow trick
-      setTimeout(showAlert, 200);
-    }
-  </script>
+  function restart() {
+    document.getElementById('reveal').classList.remove('visible');
+    document.getElementById('pct').textContent = '0%';
+    const bar = document.getElementById('bar');
+    bar.replaceWith(bar.cloneNode(true));
+    setTimeout(showAlert, 300);
+  }
+</script>
 </body>
 </html>
